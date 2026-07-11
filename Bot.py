@@ -61,31 +61,28 @@ async def on_message(message):
     elif content == 'béo':
         await message.channel.send('<@1517328324618096711>')
 
-  # Lệnh ncauca với logic đã fix
+# Lệnh câu cá đã fix logic để chạy 1 trường hợp duy nhất
     elif content == 'ncauca':
-        # Kiểm tra xem user có đang trong cooldown không
-        if user_id in cooldown_users:
-            return 
-        
-        cooldown_users.add(user_id)
-        
-        # Load dữ liệu hiện tại
         inventory = load_data()
         
-        # Sử dụng random để quyết định kết quả (chỉ chọn 1 trường hợp)
-        if random.random() < 0.3:
-            # Trường hợp 1: Câu được rác
+        # 1. QUYẾT ĐỊNH TRƯỜNG HỢP TRƯỚC (Dùng số ngẫu nhiên 0 đến 1)
+        ran = random.random()
+        
+        # 2. CHẠY TRƯỜNG HỢP ĐÓ VÀ DỪNG LẠI
+        if ran < 0.3:
+            # Trường hợp câu rác
             rac = ['một chiếc dép cũ', 'một cái áo rách', 'một mớ rác thải', 'một chiếc vớ thối']
-            await message.channel.send(f'Bạn quăng cần xuống... và câu được {random.choice(rac)}. Chán thế!')
+            ket_qua = f'Bạn quăng cần xuống... và câu được {random.choice(rac)}. Chán thế!'
         else:
-            # Trường hợp 2: Câu được cá
+            # Trường hợp câu cá
             so_luong = random.randint(1, 50)
             inventory[user_id] = inventory.get(user_id, 0) + so_luong
             save_data(inventory)
-            await message.channel.send(f'Bạn quăng cần xuống và câu được {so_luong} con cá! Tổng số cá trong kho là: {inventory[user_id]} con.')
+            ket_qua = f'Bạn quăng cần xuống và câu được {so_luong} con cá! Tổng số cá trong kho là: {inventory[user_id]} con.'
         
-        # Xóa khỏi cooldown sau khi xong
-        cooldown_users.remove(user_id)
+        # 3. GỬI TIN NHẮN DUY NHẤT
+        await message.channel.send(ket_qua)
+        return  # Lệnh return này cực kỳ quan trọng để đảm bảo không chạy thêm bất cứ gì nữa
         
     # Lệnh nfish
     elif content == 'nfish':
