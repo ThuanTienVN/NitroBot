@@ -18,7 +18,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if message.content.lower() == 'chào':
+    if message.content.lower() == 'chào, hi':
         # Danh sách các câu trả lời
         cau_tra_loi = [
             'Chào bạn', 
