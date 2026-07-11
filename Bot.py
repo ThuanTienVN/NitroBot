@@ -2,10 +2,10 @@ import os
 import discord
 import random
 from discord.ext import commands
-from flask import Flask # Cần thêm thư viện này
+from flask import Flask
 from threading import Thread
 
-# --- ĐOẠN CODE CẦN THÊM VÀO ---
+# --- Cấu hình Server ảo (Không đổi) ---
 app = Flask(__name__)
 
 @app.route('/')
@@ -17,7 +17,7 @@ def run_server():
     app.run(host="0.0.0.0", port=port)
 
 Thread(target=run_server).start()
-# --- HẾT ĐOẠN CODE CẦN THÊM ---
+# --- Hết phần cấu hình Server ---
 
 # Cấu hình intents
 intents = discord.Intents.default()
@@ -34,19 +34,22 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
+    # Xử lý phản hồi cho "chào" hoặc "hi"
     if message.content.lower() in ['chào', 'hi']:
         cau_tra_loi = [
             'Chào bạn',
             'Chào thằng gay',
             'Chào thằng lồn <:0GDroolingCat:1525444808972308540>'
         ]
-        if message.content.lower() in ['béo']:
-        cau_tra_loi = [
-            '<@1517328324618096711>'
         phan_hoi = random.choice(cau_tra_loi)
         await message.channel.send(phan_hoi)
-        ]
+    
+    # Xử lý phản hồi cho "béo"
+    elif message.content.lower() == 'béo':
+        phan_hoi = '<@1517328324618096711>'
+        await message.channel.send(phan_hoi)
+
     await bot.process_commands(message)
 
-# Đảm bảo bạn đã thêm biến môi trường DISCORD_TOKEN trong Render Settings
+# Đảm bảo đã thêm biến DISCORD_TOKEN trong Render Settings
 bot.run(os.environ['DISCORD_TOKEN'])
