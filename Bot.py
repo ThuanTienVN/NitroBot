@@ -7,7 +7,7 @@ from flask import Flask
 from threading import Thread
 
 # ==========================
-# Server ảo
+# Cấu hình Server ảo
 # ==========================
 app = Flask(__name__)
 
@@ -47,49 +47,59 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+cooldown_users = set()
+
 # ==========================
-# Sự kiện
+# Bot Ready
 # ==========================
 @bot.event
 async def on_ready():
-    print(f"{bot.user} đã sẵn sàng!")
+    print("======================")
+    print("BOT ONLINE")
+    print(f"User : {bot.user}")
+    print(f"ID   : {bot.user.id}")
+    print("======================")
 
+# ==========================
+# Nhận tin nhắn
+# ==========================
 @bot.event
 async def on_message(message):
-    # Không trả lời bot
+
     if message.author.bot:
         return
 
     content = message.content.lower().strip()
     user_id = str(message.author.id)
 
-    # ==========================
+    # ----------------------
     # Chào
-    # ==========================
+    # ----------------------
     if content in ["chào", "hi"]:
-        replies = [
+        cau_tra_loi = [
             "Chào bạn",
             "Chào thằng gay",
             "Chào thằng lồn <:0GDroolingCat:1525444808972308540>"
         ]
-        await message.channel.send(random.choice(replies))
+        await message.channel.send(random.choice(cau_tra_loi))
         return
 
-    # ==========================
+    # ----------------------
     # Béo
-    # ==========================
-    if content == "béo":
+    # ----------------------
+    elif content == "béo":
         await message.channel.send("<@1517328324618096711>")
         return
 
-    # ==========================
+    # ----------------------
     # Câu cá
-    # ==========================
-    if content == "ncauca":
+    # ----------------------
+    elif content == "ncauca":
+
         inventory = load_data()
 
-        # 30% rác
         if random.random() < 0.3:
+
             rac = [
                 "một chiếc dép cũ",
                 "một cái áo rách",
@@ -97,40 +107,46 @@ async def on_message(message):
                 "một chiếc vớ thối"
             ]
 
-            await message.channel.send(
-                f"🎣 Bạn quăng cần xuống và câu được **{random.choice(rac)}**.\n"
-                "Đúng là đen đủi!"
+            ket_qua = (
+                f"Bạn quăng cần xuống... và câu được "
+                f"{random.choice(rac)}. Chán thế!"
             )
-            return
 
-        # 70% cá
-        so_luong = random.randint(1, 50)
+        else:
 
-        inventory[user_id] = inventory.get(user_id, 0) + so_luong
-        save_data(inventory)
+            so_luong = random.randint(1, 50)
 
-        await message.channel.send(
-            f"🎣 Bạn quăng cần xuống và câu được **{so_luong}** con cá!\n"
-            f"🐟 Hiện bạn có **{inventory[user_id]}** con cá."
-        )
+            inventory[user_id] = inventory.get(user_id, 0) + so_luong
+
+            save_data(inventory)
+
+            ket_qua = (
+                f"Bạn quăng cần xuống và câu được "
+                f"{so_luong} con cá! "
+                f"Tổng số cá trong kho là: "
+                f"{inventory[user_id]} con."
+            )
+
+        await message.channel.send(ket_qua)
         return
 
-    # ==========================
+    # ----------------------
     # Xem kho cá
-    # ==========================
-    if content == "nfish":
+    # ----------------------
+    elif content == "nfish":
+
         inventory = load_data()
+
         tong_ca = inventory.get(user_id, 0)
 
         await message.channel.send(
-            f"🐟 Bạn đang sở hữu **{tong_ca}** con cá."
+            f"Bạn đang sở hữu tổng cộng {tong_ca} con cá. Tiếp tục đi câu nhé!"
         )
         return
 
-    # Cho phép command khác hoạt động
     await bot.process_commands(message)
 
 # ==========================
-# Chạy bot
+# Chạy Bot
 # ==========================
 bot.run(os.environ["DISCORD_TOKEN"])
