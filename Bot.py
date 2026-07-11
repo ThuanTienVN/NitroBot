@@ -61,25 +61,32 @@ async def on_message(message):
     elif content == 'béo':
         await message.channel.send('<@1517328324618096711>')
 
-    # Lệnh ncauca với cơ chế chống lặp
+  # Lệnh ncauca với logic đã fix
     elif content == 'ncauca':
+        # Kiểm tra xem user có đang trong cooldown không
         if user_id in cooldown_users:
-            return # Bỏ qua nếu user đang spam hoặc bot đang xử lý
+            return 
         
         cooldown_users.add(user_id)
         
+        # Load dữ liệu hiện tại
         inventory = load_data()
+        
+        # Sử dụng random để quyết định kết quả (chỉ chọn 1 trường hợp)
         if random.random() < 0.3:
+            # Trường hợp 1: Câu được rác
             rac = ['một chiếc dép cũ', 'một cái áo rách', 'một mớ rác thải', 'một chiếc vớ thối']
             await message.channel.send(f'Bạn quăng cần xuống... và câu được {random.choice(rac)}. Chán thế!')
         else:
+            # Trường hợp 2: Câu được cá
             so_luong = random.randint(1, 50)
             inventory[user_id] = inventory.get(user_id, 0) + so_luong
             save_data(inventory)
             await message.channel.send(f'Bạn quăng cần xuống và câu được {so_luong} con cá! Tổng số cá trong kho là: {inventory[user_id]} con.')
         
-        cooldown_users.remove(user_id) # Xóa khỏi danh sách để lần sau câu tiếp được
-
+        # Xóa khỏi cooldown sau khi xong
+        cooldown_users.remove(user_id)
+        
     # Lệnh nfish
     elif content == 'nfish':
         inventory = load_data()
