@@ -15,12 +15,6 @@ app = Flask(__name__)
 def home():
     return "Bot đang chạy!"
 
-def run_server():
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
-
-Thread(target=run_server).start()
-
 # ==========================
 # Lưu dữ liệu
 # ==========================
