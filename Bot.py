@@ -45,7 +45,7 @@ async def on_message(message):
             '<@1517328324618096711>'
         phan_hoi = random.choice(cau_tra_loi)
         await message.channel.send(phan_hoi)
-
+        ]
     await bot.process_commands(message)
 
 # Đảm bảo bạn đã thêm biến môi trường DISCORD_TOKEN trong Render Settings
