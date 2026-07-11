@@ -5,7 +5,7 @@ from discord.ext import commands
 from flask import Flask
 from threading import Thread
 
-# --- Cấu hình Server ảo (Không đổi) ---
+# --- Cấu hình Server ảo ---
 app = Flask(__name__)
 
 @app.route('/')
@@ -31,11 +31,14 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    # Tránh việc bot tự trả lời chính mình
     if message.author == bot.user:
         return
 
+    content = message.content.lower()
+
     # Xử lý phản hồi cho "chào" hoặc "hi"
-    if message.content.lower() in ['chào', 'hi']:
+    if content in ['chào', 'hi']:
         cau_tra_loi = [
             'Chào bạn',
             'Chào thằng gay',
@@ -45,10 +48,21 @@ async def on_message(message):
         await message.channel.send(phan_hoi)
     
     # Xử lý phản hồi cho "béo"
-    elif message.content.lower() == 'béo':
+    elif content == 'béo':
         phan_hoi = '<@1517328324618096711>'
         await message.channel.send(phan_hoi)
 
+    # Lệnh ncauca không cần dấu !
+    elif content == 'ncauca':
+        # Tỉ lệ 30% ra rác, 70% ra cá
+        if random.random() < 0.3:
+            rac = ['một chiếc dép cũ', 'một cái áo rách', 'một mớ rác thải', 'một chiếc vớ thối']
+            await message.channel.send(f'Bạn quăng cần xuống... và câu được {random.choice(rac)}. Chán thế!')
+        else:
+            diem = random.randint(1, 100)
+            await message.channel.send(f'Bạn quăng cần xuống và câu được một con cá nặng {diem}kg! Wow!')
+
+    # Quan trọng: Để bot vẫn nhận các lệnh ! khác (nếu bạn có dùng)
     await bot.process_commands(message)
 
 # Đảm bảo đã thêm biến DISCORD_TOKEN trong Render Settings
