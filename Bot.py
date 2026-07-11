@@ -40,6 +40,9 @@ async def on_message(message):
             'Chào thằng gay',
             'Chào thằng lồn <:0GDroolingCat:1525444808972308540>'
         ]
+        if message.content.lower() in ['béo']:
+        cau_tra_loi = [
+            '<@1517328324618096711>'
         phan_hoi = random.choice(cau_tra_loi)
         await message.channel.send(phan_hoi)
 
