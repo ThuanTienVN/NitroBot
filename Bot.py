@@ -6,37 +6,58 @@ from discord.ext import commands
 from flask import Flask
 from threading import Thread
 
-# --- Cấu hình Server ---
+# --- Cấu hình Server (Giữ bot online trên Render) ---
 app = Flask(__name__)
 @app.route('/')
 def home():
     return "Bot đang chạy!"
 Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))).start()
 
-# --- Biến lưu trữ ---
-inventory = {}     # {user_id: số_coin}
-fish_storage = {}  # {user_id: số_cá_đang_có}
-daily_check = {}   # {user_id: ngày_nhận}
-cooldown_check = {} # {user_id: thời_gian_câu_tiếp_theo}
+# --- Biến lưu trữ & Cấu hình ID ---
+ADMIN_ID = 123456789012345678       # THAY BẰNG ID CỦA BẠN
+LOG_CHANNEL_ID = 123456789012345678 # THAY BẰNG ID KÊNH LOG CỦA BẠN
+
+inventory = {}      
+fish_storage = {}   
+daily_check = {}    
+cooldown_check = {} 
+blacklist = {}      # Lưu {user_id: lí_do}
 
 # --- Bot Setup ---
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="", intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f'Bot {bot.user} đã sẵn sàng!')
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user: return
     
-    content = message.content.lower().strip()
     user_id = str(message.author.id)
+    content = message.content.lower().strip()
+    if not content: return
+
+    # Lấy từ đầu tiên trong tin nhắn để kiểm tra lệnh
+    command_name = content.split()[0]
+    bot_commands = ['nhelp', 'ncauca', 'nfish', 'nbanca', 'nme', 'ndaily', 'nsanggay', 'nban', 'nunban']
+
+    # Kiểm tra Blacklist: Nếu người dùng bị cấm và cố tình gõ lệnh
+    if user_id in blacklist:
+        if command_name in bot_commands:
+            reason = blacklist[user_id]
+            await message.channel.send(f"{message.author.mention} đã bị ban bởi Admin với lí do {reason}")
+        return # Bỏ qua mọi tin nhắn của người này
+
     now = datetime.now()
 
     # 1. Lệnh nhelp
     if content == 'nhelp':
         await message.channel.send("📋 **Danh sách lệnh:**\n`ncauca`: Câu cá (Cooldown 3p)\n`nfish`: Xem số cá chưa bán\n`nbanca`: Bán toàn bộ cá lấy coin\n`nme`: Xem số dư coin\n`ndaily`: Nhận coin mỗi ngày\n`nsanggay`: Phản hồi đặc biệt")
 
-  # 2. Lệnh ncauca (Cooldown 3 phút, có tag người dùng)
+    # 2. Lệnh ncauca 
     elif content == 'ncauca':
         last_time = cooldown_check.get(user_id)
         if last_time and now < last_time:
@@ -53,16 +74,16 @@ async def on_message(message):
             
             cooldown_check[user_id] = now + timedelta(minutes=3)
 
-    # 3. Lệnh nfish (Xem cá)
+    # 3. Lệnh nfish
     elif content == 'nfish':
         so_ca = fish_storage.get(user_id, 0)
         await message.channel.send(f"🐟 Bạn đang có {so_ca} con cá trong kho.")
 
-    # 4. Lệnh nbanca (Bán cá)
+    # 4. Lệnh nbanca
     elif content == 'nbanca':
         so_ca = fish_storage.get(user_id, 0)
         if so_ca > 0:
-            coin = so_ca * 5  # Giả sử giá bán là 5 coin/con
+            coin = so_ca * 5  
             inventory[user_id] = inventory.get(user_id, 0) + coin
             fish_storage[user_id] = 0
             await message.channel.send(f"Bạn đã bán {so_ca} con cá và nhận được {coin} coin! Tổng số dư: {inventory[user_id]} coin.")
@@ -76,7 +97,7 @@ async def on_message(message):
 
     # 6. Lệnh ndaily
     elif content == 'ndaily':
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = now.strftime("%Y-%m-%d")
         if daily_check.get(user_id) == today:
             await message.channel.send("Bạn đã nhận quà hôm nay rồi, mai quay lại nhé!")
         else:
@@ -89,6 +110,55 @@ async def on_message(message):
     elif content == 'nsanggay':
         await message.channel.send("cái gì v mẹ <:0GDroolingCat:1525444808972308540>")
 
-    await bot.process_commands(message)
+    # 8. Lệnh nban và nunban
+    elif content.startswith('nban ') or content.startswith('nunban '):
+        if message.author.id != ADMIN_ID:
+            await message.channel.send("Bạn không có quyền này!")
+            return
+
+        log_channel = bot.get_channel(LOG_CHANNEL_ID)
+
+        if not message.mentions:
+            await message.channel.send("Hãy tag người dùng cần xử lý (VD: `nban @user lí do`)!")
+            return
+
+        target = message.mentions[0]
+        target_id = str(target.id)
+
+        if content.startswith('nban '):
+            parts = message.content.split(' ', 2)
+            reason = parts[2] if len(parts) > 2 else "không có lí do"
+
+            if target_id in blacklist:
+                await message.channel.send("Người này đã bị cấm trước đó rồi!")
+            else:
+                blacklist[target_id] = reason
+                
+                # Gửi vào kênh log
+                if log_channel:
+                    await log_channel.send(
+                        f"🚫 **LOG BAN**\n"
+                        f"- Người bị ban: {target.mention}\n"
+                        f"- Người thực hiện: {message.author.mention}\n"
+                        f"- Lí do: {reason}"
+                    )
+                # Phản hồi tại kênh hiện tại
+                await message.channel.send(f"bạn đã ban {target.mention} với {reason}")
+
+        elif content.startswith('nunban '):
+            if target_id not in blacklist:
+                await message.channel.send("Người này hiện không bị cấm!")
+            else:
+                del blacklist[target_id]
+                
+                # Gửi vào kênh log
+                if log_channel:
+                    await log_channel.send(
+                        f"✅ **LOG UNBAN**\n"
+                        f"- Người được gỡ ban: {target.mention}\n"
+                        f"- Người thực hiện: {message.author.mention}"
+                    )
+                # Phản hồi tại kênh hiện tại
+                await message.channel.send(f"Đã gỡ ban cho {target.mention}")
 
 bot.run(os.environ['DISCORD_TOKEN'])
