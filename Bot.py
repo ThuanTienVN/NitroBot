@@ -13,9 +13,9 @@ def home():
     return "Bot đang chạy!"
 Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))).start()
 
-# --- Biến lưu trữ (Tạm thời) ---
-inventory = {}     # {user_id: số_coin}
-daily_check = {}   # {user_id: ngày_nhận}
+# --- Biến lưu trữ ---
+inventory = {}     
+daily_check = {}   
 
 # --- Bot Setup ---
 intents = discord.Intents.default()
@@ -33,9 +33,9 @@ async def on_message(message):
     content = message.content.lower().strip()
     user_id = str(message.author.id)
 
-    # 1. Lệnh nhelp
+    # 1. Lệnh nhelp (Đã xóa chào, hi và béo)
     if content == 'nhelp':
-        await message.channel.send("📋 **Danh sách lệnh:**\n`ncauca`: Câu cá (tự động bán lấy coin)\n`nme`: Xem số dư coin của bạn\n`ndaily`: Nhận coin mỗi ngày\n`chào/hi`: Chào bot\n`béo`: Gọi tên người bạn béo")
+        await message.channel.send("📋 **Danh sách lệnh:**\n`ncauca`: Câu cá (tự động bán lấy coin)\n`nme`: Xem số dư coin của bạn\n`ndaily`: Nhận coin mỗi ngày\n`nsanggay`: Phản hồi đặc biệt")
 
     # 2. Lệnh ndaily
     elif content == 'ndaily':
@@ -48,7 +48,7 @@ async def on_message(message):
             daily_check[user_id] = today
             await message.channel.send(f"Bạn nhận được {thuong} coin làm vốn khởi nghiệp! Tổng số dư: {inventory[user_id]} coin.")
 
-    # 3. Lệnh ncauca (tự động cộng tiền vào số dư)
+    # 3. Lệnh ncauca
     elif content == 'ncauca':
         if random.random() < 0.3:
             rac = ['một chiếc dép cũ', 'một cái áo rách', 'một mớ rác thải']
@@ -58,12 +58,16 @@ async def on_message(message):
             inventory[user_id] = inventory.get(user_id, 0) + so_ca
             await message.channel.send(f'Bạn câu được {so_ca} con cá và bán được {so_ca} coin! Tổng số dư: {inventory[user_id]} coin.')
 
-    # 4. Lệnh nme (xem số dư)
+    # 4. Lệnh nme
     elif content == 'nme':
         so_du = inventory.get(user_id, 0)
         await message.channel.send(f"💰 **Số dư của bạn:** {so_du} coin.")
 
-    # 5. Phản hồi
+    # 5. Lệnh nsanggay (Lệnh mới)
+    elif content == 'nsanggay':
+        await message.channel.send("cái gì v mẹ <:0GDroolingCat:1525444808972308540>")
+
+    # Các lệnh phản hồi cũ vẫn giữ nguyên logic nhưng không hiện trong nhelp
     elif content in ['chào', 'hi']:
         await message.channel.send(random.choice(['Chào bạn', 'Chào thằng gay', 'Chào thằng lồn <:0GDroolingCat:1525444808972308540>']))
     elif content == 'béo':
