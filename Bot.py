@@ -145,7 +145,7 @@ async def on_message(message):
                         f"- Lí do: {reason}"
                     )
                 # Phản hồi tại kênh hiện tại
-                await message.channel.send(f"bạn đã ban {target.mention} với {reason}")
+                await message.channel.send(f"bạn đã ban {target.mention} với lí do {reason}")
 
         elif command_name == 'nunban':
             if target_id not in blacklist:
