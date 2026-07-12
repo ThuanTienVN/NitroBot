@@ -1,146 +1,74 @@
 import os
 import discord
 import random
-import json
+from datetime import datetime
 from discord.ext import commands
 from flask import Flask
 from threading import Thread
 
-# ==========================
-# Cấu hình Server ảo
-# ==========================
+# --- Cấu hình Server ---
 app = Flask(__name__)
-
-@app.route("/")
+@app.route('/')
 def home():
     return "Bot đang chạy!"
+Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))).start()
 
-# ==========================
-# Lưu dữ liệu
-# ==========================
-DATA_FILE = "data.json"
+# --- Biến lưu trữ (Tạm thời) ---
+inventory = {}     # {user_id: số_coin}
+daily_check = {}   # {user_id: ngày_nhận}
 
-def load_data():
-    if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except:
-            return {}
-    return {}
-
-def save_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f)
-
-# ==========================
-# Discord Bot
-# ==========================
+# --- Bot Setup ---
 intents = discord.Intents.default()
 intents.message_content = True
-
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-cooldown_users = set()
-
-# ==========================
-# Bot Ready
-# ==========================
 @bot.event
 async def on_ready():
-    print("======================")
-    print("BOT ONLINE")
-    print(f"User : {bot.user}")
-    print(f"ID   : {bot.user.id}")
-    print("======================")
+    print(f'Bot {bot.user} đã sẵn sàng!')
 
-# ==========================
-# Nhận tin nhắn
-# ==========================
 @bot.event
 async def on_message(message):
-
-    if message.author.bot:
-        return
-
+    if message.author == bot.user: return
+    
     content = message.content.lower().strip()
     user_id = str(message.author.id)
 
-    # ----------------------
-    # Chào
-    # ----------------------
-    if content in ["chào", "hi"]:
-        cau_tra_loi = [
-            "Chào bạn",
-            "Chào thằng gay",
-            "Chào thằng lồn <:0GDroolingCat:1525444808972308540>"
-        ]
-        await message.channel.send(random.choice(cau_tra_loi))
-        return
+    # 1. Lệnh nhelp
+    if content == 'nhelp':
+        await message.channel.send("📋 **Danh sách lệnh:**\n`ncauca`: Câu cá (tự động bán lấy coin)\n`nme`: Xem số dư coin của bạn\n`ndaily`: Nhận coin mỗi ngày\n`chào/hi`: Chào bot\n`béo`: Gọi tên người bạn béo")
 
-    # ----------------------
-    # Béo
-    # ----------------------
-    elif content == "béo":
-        await message.channel.send("<@1517328324618096711>")
-        return
-
-    # ----------------------
-    # Câu cá
-    # ----------------------
-    elif content == "ncauca":
-
-        inventory = load_data()
-
-        if random.random() < 0.3:
-
-            rac = [
-                "một chiếc dép cũ",
-                "một cái áo rách",
-                "một mớ rác thải",
-                "một chiếc vớ thối"
-            ]
-
-            ket_qua = (
-                f"Bạn quăng cần xuống... và câu được "
-                f"{random.choice(rac)}. Chán thế!"
-            )
-
+    # 2. Lệnh ndaily
+    elif content == 'ndaily':
+        today = datetime.now().strftime("%Y-%m-%d")
+        if daily_check.get(user_id) == today:
+            await message.channel.send("Bạn đã nhận quà hôm nay rồi, mai quay lại nhé!")
         else:
+            thuong = random.randint(1, 50)
+            inventory[user_id] = inventory.get(user_id, 0) + thuong
+            daily_check[user_id] = today
+            await message.channel.send(f"Bạn nhận được {thuong} coin làm vốn khởi nghiệp! Tổng số dư: {inventory[user_id]} coin.")
 
-            so_luong = random.randint(1, 50)
+    # 3. Lệnh ncauca (tự động cộng tiền vào số dư)
+    elif content == 'ncauca':
+        if random.random() < 0.3:
+            rac = ['một chiếc dép cũ', 'một cái áo rách', 'một mớ rác thải']
+            await message.channel.send(f'Bạn quăng cần xuống... và câu được {random.choice(rac)}. Chán thế!')
+        else:
+            so_ca = random.randint(1, 50)
+            inventory[user_id] = inventory.get(user_id, 0) + so_ca
+            await message.channel.send(f'Bạn câu được {so_ca} con cá và bán được {so_ca} coin! Tổng số dư: {inventory[user_id]} coin.')
 
-            inventory[user_id] = inventory.get(user_id, 0) + so_luong
+    # 4. Lệnh nme (xem số dư)
+    elif content == 'nme':
+        so_du = inventory.get(user_id, 0)
+        await message.channel.send(f"💰 **Số dư của bạn:** {so_du} coin.")
 
-            save_data(inventory)
-
-            ket_qua = (
-                f"Bạn quăng cần xuống và câu được "
-                f"{so_luong} con cá! "
-                f"Tổng số cá trong kho là: "
-                f"{inventory[user_id]} con."
-            )
-
-        await message.channel.send(ket_qua)
-        return
-
-    # ----------------------
-    # Xem kho cá
-    # ----------------------
-    elif content == "nfish":
-
-        inventory = load_data()
-
-        tong_ca = inventory.get(user_id, 0)
-
-        await message.channel.send(
-            f"Bạn đang sở hữu tổng cộng {tong_ca} con cá. Tiếp tục đi câu nhé!"
-        )
-        return
+    # 5. Phản hồi
+    elif content in ['chào', 'hi']:
+        await message.channel.send(random.choice(['Chào bạn', 'Chào thằng gay', 'Chào thằng lồn <:0GDroolingCat:1525444808972308540>']))
+    elif content == 'béo':
+        await message.channel.send('<@1517328324618096711>')
 
     await bot.process_commands(message)
 
-# ==========================
-# Chạy Bot
-# ==========================
-bot.run(os.environ["DISCORD_TOKEN"])
+bot.run(os.environ['DISCORD_TOKEN'])
