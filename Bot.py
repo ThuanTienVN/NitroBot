@@ -36,20 +36,20 @@ async def on_message(message):
     if content == 'nhelp':
         await message.channel.send("📋 **Danh sách lệnh:**\n`ncauca`: Câu cá (Cooldown 3p)\n`nfish`: Xem số cá chưa bán\n`nbanca`: Bán toàn bộ cá lấy coin\n`nme`: Xem số dư coin\n`ndaily`: Nhận coin mỗi ngày\n`nsanggay`: Phản hồi đặc biệt")
 
-    # 2. Lệnh ncauca (Cooldown 3 phút)
+  # 2. Lệnh ncauca (Cooldown 3 phút, có tag người dùng)
     elif content == 'ncauca':
         last_time = cooldown_check.get(user_id)
         if last_time and now < last_time:
             wait_time = int((last_time - now).total_seconds() / 60) + 1
-            await message.channel.send(f"Bạn đang thấm mệt, hãy nghỉ ngơi {wait_time} phút nữa rồi quay lại nhé!")
+            await message.channel.send(f"{message.author.mention} Bạn đang thấm mệt, hãy nghỉ ngơi {wait_time} phút nữa rồi quay lại nhé!")
         else:
             if random.random() < 0.3:
                 rac = ['một chiếc dép cũ', 'một cái áo rách', 'một mớ rác thải']
-                await message.channel.send(f'Bạn quăng cần xuống... và câu được {random.choice(rac)}. Chán thế!')
+                await message.channel.send(f'{message.author.mention} Bạn quăng cần xuống... và câu được {random.choice(rac)}. Chán thế!')
             else:
                 so_ca = random.randint(1, 10)
                 fish_storage[user_id] = fish_storage.get(user_id, 0) + so_ca
-                await message.channel.send(f'Bạn câu được {so_ca} con cá! Dùng `nbanca` để bán nhé.')
+                await message.channel.send(f'{message.author.mention} Bạn câu được {so_ca} con cá! Dùng `nbanca` để bán nhé.')
             
             cooldown_check[user_id] = now + timedelta(minutes=3)
 
