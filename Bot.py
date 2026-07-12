@@ -110,13 +110,15 @@ async def on_message(message):
         await message.channel.send("cái gì v mẹ <:0GDroolingCat:1525444808972308540>")
 
     # 8. Lệnh nban và nunban
-    elif content.startswith('nban ') or content.startswith('nunban '):
+# 8. Lệnh nban và nunban
+    elif command_name in ['nban', 'nunban']:
         if message.author.id != ADMIN_ID:
             await message.channel.send("Bạn không có quyền này!")
             return
 
         log_channel = bot.get_channel(LOG_CHANNEL_ID)
 
+        # Kiểm tra xem có tag ai không
         if not message.mentions:
             await message.channel.send("Hãy tag người dùng cần xử lý (VD: `nban @user lí do`)!")
             return
@@ -124,7 +126,8 @@ async def on_message(message):
         target = message.mentions[0]
         target_id = str(target.id)
 
-        if content.startswith('nban '):
+        if command_name == 'nban':
+            # Tách tin nhắn để lấy lí do
             parts = message.content.split(' ', 2)
             reason = parts[2] if len(parts) > 2 else "không có lí do"
 
@@ -142,9 +145,9 @@ async def on_message(message):
                         f"- Lí do: {reason}"
                     )
                 # Phản hồi tại kênh hiện tại
-                await message.channel.send(f"bạn đã ban {target.mention} với lí do {reason}")
+                await message.channel.send(f"bạn đã ban {target.mention} với {reason}")
 
-        elif content.startswith('nunban '):
+        elif command_name == 'nunban':
             if target_id not in blacklist:
                 await message.channel.send("Người này hiện không bị cấm!")
             else:
@@ -159,5 +162,5 @@ async def on_message(message):
                     )
                 # Phản hồi tại kênh hiện tại
                 await message.channel.send(f"Đã gỡ ban cho {target.mention}")
-
+                
 bot.run(os.environ['DISCORD_TOKEN'])
