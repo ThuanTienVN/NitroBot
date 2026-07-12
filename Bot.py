@@ -14,8 +14,8 @@ def home():
 Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))).start()
 
 # --- Biến lưu trữ & Cấu hình ID ---
-ADMIN_ID = 123456789012345678       # THAY BẰNG ID CỦA BẠN
-LOG_CHANNEL_ID = 123456789012345678 # THAY BẰNG ID KÊNH LOG CỦA BẠN
+ADMIN_ID = 1517328324618096711     # THAY BẰNG ID CỦA BẠN
+LOG_CHANNEL_ID = 1525836950928494753 # THAY BẰNG ID KÊNH LOG CỦA BẠN
 
 inventory = {}      
 fish_storage = {}   
