@@ -11,7 +11,6 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return "Bot đang chạy!"
-Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))).start()
 
 # --- Biến lưu trữ & Cấu hình ID ---
 ADMIN_ID = 1517328324618096711     # THAY BẰNG ID CỦA BẠN
