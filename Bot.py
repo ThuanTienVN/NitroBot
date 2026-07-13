@@ -41,7 +41,7 @@ async def on_message(message):
 
     # Lấy từ đầu tiên trong tin nhắn để kiểm tra lệnh
     command_name = content.split()[0]
-    bot_commands = ['nhelp', 'ncauca', 'nfish', 'nbanca', 'nme', 'ndaily', 'nsanggay', 'nban', 'nunban']
+    bot_commands = ['nhelp', 'ncauca', 'nfish', 'nbanca', 'nme', 'ndaily', 'nban', 'nunban']
 
     # Kiểm tra Blacklist: Nếu người dùng bị cấm và cố tình gõ lệnh
     if user_id in blacklist:
@@ -54,7 +54,7 @@ async def on_message(message):
 
     # 1. Lệnh nhelp
     if content == 'nhelp':
-        await message.channel.send("📋 **Danh sách lệnh:**\n`ncauca`: Câu cá (Cooldown 3p)\n`nfish`: Xem số cá chưa bán\n`nbanca`: Bán toàn bộ cá lấy coin\n`nme`: Xem số dư coin\n`ndaily`: Nhận coin mỗi ngày\n`nsanggay`: Phản hồi đặc biệt")
+        await message.channel.send("📋 **Danh sách lệnh:**\n`ncauca`: Câu cá (Cooldown 3p)\n`nfish`: Xem số cá chưa bán\n`nbanca`: Bán toàn bộ cá lấy coin\n`nme`: Xem số dư coin\n`ndaily`: Nhận coin mỗi ngày")
 
     # 2. Lệnh ncauca 
     elif content == 'ncauca':
